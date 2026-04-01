@@ -1,9 +1,19 @@
-export default function TopClients({ shows }) {
+export default function TopClients({ shows = [] }) {
   const map = {};
 
   shows.forEach((s) => {
-    if (!map[s.client]) map[s.client] = 0;
-    map[s.client] += s.cost || 0;
+    const client = s.client || "Không rõ";
+
+    const extra =
+      (s.extraFees || []).reduce(
+        (sum, f) => sum + (Number(f.amount) || 0),
+        0,
+      ) || 0;
+
+    const total = (Number(s.cost) || 0) + extra;
+
+    if (!map[client]) map[client] = 0;
+    map[client] += total;
   });
 
   const sorted = Object.entries(map)
@@ -18,7 +28,7 @@ export default function TopClients({ shows }) {
         <div key={name} className="flex justify-between text-sm mb-2">
           <span>{name}</span>
           <span className="font-medium text-blue-600">
-            {total.toLocaleString()}đ
+            {total.toLocaleString("vi-VN")}đ
           </span>
         </div>
       ))}

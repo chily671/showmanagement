@@ -16,12 +16,24 @@ export default function DashboardPage() {
     setShows(data);
   };
 
+  const getTotal = (s) => {
+    const cost = Number(s.cost) || 0;
+
+    const extra =
+      (s.extraFees || []).reduce(
+        (sum, f) => sum + (Number(f.amount) || 0),
+        0,
+      ) || 0;
+
+    return cost + extra;
+  };
+
   useEffect(() => {
     fetchShows();
   }, []);
 
   const totalIncome = useMemo(
-    () => shows.reduce((sum, s) => sum + (s.cost || 0), 0),
+    () => shows.reduce((sum, s) => sum + getTotal(s), 0),
     [shows],
   );
 
@@ -29,15 +41,19 @@ export default function DashboardPage() {
 
   const thisMonthIncome = useMemo(() => {
     const now = new Date();
+
     return shows
       .filter((s) => {
+        if (!s?.date) return false;
+
         const d = new Date(s.date);
+
         return (
           d.getMonth() === now.getMonth() &&
           d.getFullYear() === now.getFullYear()
         );
       })
-      .reduce((sum, s) => sum + (s.cost || 0), 0);
+      .reduce((sum, s) => sum + getTotal(s), 0);
   }, [shows]);
 
   return (

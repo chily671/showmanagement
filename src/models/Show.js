@@ -6,8 +6,15 @@ const ShowSchema = new mongoose.Schema(
     date: Date,
     client: String,
     cost: Number,
+    extraFees: [
+      {
+        name: String,
+        amount: Number,
+      },
+    ],
     location: String,
     note: String,
+    manager: String,
   },
   { timestamps: true },
 );

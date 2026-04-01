@@ -10,7 +10,6 @@ import Modal from "@/components/ui/Modal";
 
 export default function ShowsPage() {
   const { shows, addShow, removeShow, updateShow } = useShows();
-
   const [filter, setFilter] = useState({
     search: "",
     client: "",
@@ -44,6 +43,10 @@ export default function ShowsPage() {
     }
   };
 
+  const handleMoveShow = async (id, newDate) => {
+    await updateShow(id, { date: newDate });
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Quản lý show</h1>
@@ -60,7 +63,13 @@ export default function ShowsPage() {
 
       <ShowFilter filter={filter} setFilter={setFilter} />
 
-      <ShowCalendar shows={filteredShows} />
+      <ShowCalendar
+        shows={filteredShows}
+        onSelectShow={(show) => {
+          setEditing(show); // 🔥 dùng chung
+          setOpen(true); // 🔥 mở modal
+        }}
+      />
 
       <ShowTable
         shows={filteredShows}
@@ -74,9 +83,16 @@ export default function ShowsPage() {
       {/* MODAL */}
       <Modal open={open} onClose={() => setOpen(false)}>
         <ShowForm
-          onSubmit={handleSubmit}
           initialData={editing}
-          onClose={() => setOpen(false)}
+          onSubmit={(data) => {
+            if (editing) {
+              updateShow(editing._id, data);
+            } else {
+              addShow(data);
+            }
+            setOpen(false);
+            setEditing(null);
+          }}
         />
       </Modal>
     </div>

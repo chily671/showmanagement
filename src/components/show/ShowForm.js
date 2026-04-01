@@ -12,11 +12,33 @@ export default function ShowForm({ onSubmit, initialData, onClose }) {
     cost: "",
     location: "",
     note: "",
+    manager: "",
   });
 
+  const [extraFees, setExtraFees] = useState([]);
   const [errors, setErrors] = useState({});
 
-  // 🔥 LOAD DATA KHI EDIT
+  // =====================
+  // EXTRA FEES
+  // =====================
+  const addFee = () => {
+    setExtraFees([...extraFees, { name: "", amount: "" }]);
+  };
+
+  const removeFee = (index) => {
+    setExtraFees(extraFees.filter((_, i) => i !== index));
+  };
+
+  const updateFee = (index, field, value) => {
+    const newFees = [...extraFees];
+    newFees[index][field] =
+      field === "amount" ? formatCurrencyInput(value) : value;
+    setExtraFees(newFees);
+  };
+
+  // =====================
+  // LOAD DATA KHI EDIT
+  // =====================
   useEffect(() => {
     if (initialData) {
       setForm({
@@ -26,7 +48,16 @@ export default function ShowForm({ onSubmit, initialData, onClose }) {
         cost: formatCurrencyInput(initialData.cost?.toString() || ""),
         location: initialData.location || "",
         note: initialData.note || "",
+        manager: initialData.manager || "",
       });
+
+      // 🔥 load extraFees
+      setExtraFees(
+        (initialData.extraFees || []).map((f) => ({
+          name: f.name || "",
+          amount: formatCurrencyInput(f.amount?.toString() || ""),
+        })),
+      );
     }
   }, [initialData]);
 
@@ -41,6 +72,7 @@ export default function ShowForm({ onSubmit, initialData, onClose }) {
     if (!form.client) newErrors.client = "Nhập khách";
     if (!form.cost || parseCurrency(form.cost) <= 0)
       newErrors.cost = "Chi phí không hợp lệ";
+    if (!form.manager) newErrors.manager = "Nhập tên quản lý";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -57,12 +89,16 @@ export default function ShowForm({ onSubmit, initialData, onClose }) {
     onSubmit({
       ...form,
       cost: parseCurrency(form.cost),
+
+      // 🔥 extraFees parse về number
+      extraFees: extraFees.map((f) => ({
+        name: f.name,
+        amount: parseCurrency(f.amount || "0"),
+      })),
     });
 
-    // 🔥 TOAST THEO MODE
     toast.success(initialData ? "Đã cập nhật 🎯" : "Đã thêm show 🎤");
 
-    // reset nếu là add
     if (!initialData) {
       setForm({
         title: "",
@@ -71,12 +107,21 @@ export default function ShowForm({ onSubmit, initialData, onClose }) {
         cost: "",
         location: "",
         note: "",
+        manager: "",
       });
+      setExtraFees([]);
     }
 
     setErrors({});
-    onClose?.(); // đóng modal nếu có
+    onClose?.();
   };
+
+  // =====================
+  // TOTAL PREVIEW
+  // =====================
+  const total =
+    parseCurrency(form.cost || "0") +
+    extraFees.reduce((sum, f) => sum + parseCurrency(f.amount || "0"), 0);
 
   // =====================
   // UI
@@ -87,61 +132,49 @@ export default function ShowForm({ onSubmit, initialData, onClose }) {
       className="bg-white p-5 rounded-2xl shadow grid md:grid-cols-3 gap-4"
     >
       {/* TITLE */}
-      <div>
-        <input
-          className="input w-full"
-          placeholder="Tên show"
-          value={form.title || ""}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-        />
-        {errors.title && (
-          <p className="text-red-500 text-xs mt-1">{errors.title}</p>
-        )}
-      </div>
+      <input
+        className="input"
+        placeholder="Tên show"
+        value={form.title || ""}
+        onChange={(e) => setForm({ ...form, title: e.target.value })}
+      />
 
       {/* DATE */}
-      <div>
-        <input
-          type="date"
-          className="input w-full"
-          value={form.date || ""}
-          onChange={(e) => setForm({ ...form, date: e.target.value })}
-        />
-        {errors.date && (
-          <p className="text-red-500 text-xs mt-1">{errors.date}</p>
-        )}
-      </div>
+      <input
+        type="date"
+        className="input"
+        value={form.date || ""}
+        onChange={(e) => setForm({ ...form, date: e.target.value })}
+      />
 
       {/* CLIENT */}
-      <div>
-        <input
-          className="input w-full"
-          placeholder="Người book"
-          value={form.client || ""}
-          onChange={(e) => setForm({ ...form, client: e.target.value })}
-        />
-        {errors.client && (
-          <p className="text-red-500 text-xs mt-1">{errors.client}</p>
-        )}
-      </div>
+      <input
+        className="input"
+        placeholder="Người book"
+        value={form.client || ""}
+        onChange={(e) => setForm({ ...form, client: e.target.value })}
+      />
 
       {/* COST */}
-      <div>
-        <input
-          className="input w-full"
-          placeholder="Chi phí"
-          value={form.cost || ""}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              cost: formatCurrencyInput(e.target.value),
-            })
-          }
-        />
-        {errors.cost && (
-          <p className="text-red-500 text-xs mt-1">{errors.cost}</p>
-        )}
-      </div>
+      <input
+        className="input"
+        placeholder="Chi phí"
+        value={form.cost || ""}
+        onChange={(e) =>
+          setForm({
+            ...form,
+            cost: formatCurrencyInput(e.target.value),
+          })
+        }
+      />
+
+      {/* MANAGER */}
+      <input
+        className="input"
+        placeholder="Tên quản lý"
+        value={form.manager || ""}
+        onChange={(e) => setForm({ ...form, manager: e.target.value })}
+      />
 
       {/* LOCATION */}
       <input
@@ -158,6 +191,53 @@ export default function ShowForm({ onSubmit, initialData, onClose }) {
         value={form.note || ""}
         onChange={(e) => setForm({ ...form, note: e.target.value })}
       />
+
+      {/* ===================== */}
+      {/* EXTRA FEES */}
+      {/* ===================== */}
+      <div className="col-span-full space-y-2">
+        <div className="flex justify-between items-center">
+          <p className="font-semibold">Phí cộng thêm</p>
+          <button
+            type="button"
+            onClick={addFee}
+            className="text-sm text-blue-500"
+          >
+            + Thêm phí
+          </button>
+        </div>
+
+        {extraFees.map((f, i) => (
+          <div key={i} className="flex gap-2">
+            <input
+              className="input flex-1"
+              placeholder="Tên phí"
+              value={f.name}
+              onChange={(e) => updateFee(i, "name", e.target.value)}
+            />
+
+            <input
+              className="input w-40"
+              placeholder="Số tiền"
+              value={f.amount}
+              onChange={(e) => updateFee(i, "amount", e.target.value)}
+            />
+
+            <button
+              type="button"
+              onClick={() => removeFee(i)}
+              className="text-red-500"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* TOTAL PREVIEW */}
+      <div className="col-span-full text-right font-semibold text-green-600">
+        Tổng thu: {total.toLocaleString("vi-VN")}đ
+      </div>
 
       {/* BUTTON */}
       <button className="col-span-full bg-black text-white p-3 rounded-xl hover:opacity-90">

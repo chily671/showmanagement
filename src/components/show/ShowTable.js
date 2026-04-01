@@ -9,8 +9,12 @@ export default function ShowTable({ shows, onDelete, onEdit }) {
           {shows?.map((s) => (
             <tr key={s._id} className="border-t">
               <td className="p-3">{s.title}</td>
-              <td className="p-3">{formatMoney(s.cost)}</td>
-
+              <td className="p-3">
+                {formatMoney(
+                  s.cost +
+                    (s.extraFees?.reduce((sum, f) => sum + f.amount, 0) || 0),
+                )}
+              </td>
               <td className="p-3">
                 <button
                   onClick={() => onDelete(s._id)}
