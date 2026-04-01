@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { formatCurrencyInput, parseCurrency } from "@/lib/format";
 
-export default function ShowForm({ onSubmit, initialData, onClose }) {
+export default function ShowForm({
+  onSubmit,
+  initialData,
+  clients,
+  managers,
+  onClose,
+}) {
   const [form, setForm] = useState({
     title: "",
     date: "",
@@ -149,11 +155,17 @@ export default function ShowForm({ onSubmit, initialData, onClose }) {
 
       {/* CLIENT */}
       <input
+        list="clients"
         className="input"
         placeholder="Người book"
         value={form.client || ""}
         onChange={(e) => setForm({ ...form, client: e.target.value })}
       />
+      <datalist id="clients">
+        {clients?.map((c) => (
+          <option key={c} value={c} />
+        ))}
+      </datalist>
 
       {/* COST */}
       <input
@@ -170,11 +182,17 @@ export default function ShowForm({ onSubmit, initialData, onClose }) {
 
       {/* MANAGER */}
       <input
+        list="managers"
         className="input"
         placeholder="Tên quản lý"
         value={form.manager || ""}
         onChange={(e) => setForm({ ...form, manager: e.target.value })}
       />
+      <datalist id="managers">
+        {managers?.map((m) => (
+          <option key={m} value={m} />
+        ))}
+      </datalist>
 
       {/* LOCATION */}
       <input

@@ -7,9 +7,11 @@ import ShowCalendar from "@/components/show/ShowCalendar";
 import ShowFilter from "@/components/show/ShowFilter";
 import ShowForm from "@/components/show/ShowForm";
 import Modal from "@/components/ui/Modal";
+import { useMeta } from "@/hooks/useMeta";
 
 export default function ShowsPage() {
   const { shows, addShow, removeShow, updateShow } = useShows();
+  const { clients, managers } = useMeta(shows);
   const [filter, setFilter] = useState({
     search: "",
     client: "",
@@ -84,6 +86,8 @@ export default function ShowsPage() {
       <Modal open={open} onClose={() => setOpen(false)}>
         <ShowForm
           initialData={editing}
+          clients={clients}
+          managers={managers}
           onSubmit={(data) => {
             if (editing) {
               updateShow(editing._id, data);
